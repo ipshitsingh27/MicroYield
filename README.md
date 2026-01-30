@@ -1,7 +1,7 @@
 # MicroYield  
 ### Save automatically. Earn effortlessly.
 
-MicroYield is a Web3-powered savings application that automates micro-deposits and generates safe yield using Stellar DeFi — without exposing users to blockchain complexity.
+MicroYield is a Web3-powered savings application that automates micro-deposits and generates safe yield using Stellar DeFi without exposing users to blockchain complexity.
 
 Built for non-crypto native users in APAC, MicroYield transforms everyday spending into automated USD-denominated savings.
 
@@ -32,7 +32,7 @@ MicroYield bridges this gap by automating savings and deploying funds into low-r
 - 💰 **Stablecoin-Based Yield Generation**
 - 🔐 **Full Blockchain Abstraction** (no seed phrases, no manual DeFi interactions)
 
-Users experience MicroYield as a simple savings app — not a crypto app.
+Users experience MicroYield as a simple savings app not a crypto app.
 
 ---
 
