@@ -9,6 +9,7 @@ from fastapi import Depends
 from app.models import wallet
 from app.routes import wallet as wallet_routes
 from app.routes import vault as vault_routes
+from app.routers.yield_router import router as yield_router
 
 
 
@@ -16,6 +17,8 @@ app = FastAPI()
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(wallet_routes.router, prefix="/wallet", tags=["Wallet"])
 app.include_router(vault_routes.router, prefix="/vault", tags=["Vault"])
+app.include_router(yield_router)
+
 
 Base.metadata.create_all(bind=engine)
 
