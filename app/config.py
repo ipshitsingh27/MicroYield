@@ -1,0 +1,17 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+HORIZON_URL = "https://horizon-testnet.stellar.org"
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
+ISSUER_PUBLIC_KEY = os.getenv("ISSUER_PUBLIC_KEY")
+ISSUER_SECRET_KEY = os.getenv("ISSUER_SECRET_KEY")
+VAULT_PUBLIC_KEY = os.getenv("VAULT_PUBLIC_KEY")
+VAULT_SECRET_KEY = os.getenv("VAULT_SECRET_KEY")
+SOROBAN_CONTRACT_ID = "CB5NXGAPXL53RK4XYJ4AALPUYTNS3PBSOCP7LDEFG66VRHQBXGEPVGWX"
+SOROBAN_RPC_URL = "https://soroban-testnet.stellar.org"
