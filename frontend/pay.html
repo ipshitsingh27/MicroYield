@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pay</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div class="app-container">
+
+<h2>Smart Payment</h2>
+
+<div class="card">
+  <p>Merchant: Cafe Stellar</p>
+  <p>Bill: 7 XLM</p>
+
+  <label class="toggle">
+    <input> type="checkbox" id="invest">
+    Invest 3 XLM into USDC
+  </label>
+
+  <button class="primary-btn" onclick="makePayment()">Confirm</button>
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html">🏠</a>
+  <a href="pay.html">💳</a>
+  <a href="vault.html">🏦</a>
+  <a href="yield.html">📈</a>
+</nav>
+
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/pay.js"></script>
+</body>
+</html>

@@ -1,6 +1,5 @@
-from stellar_sdk import Keypair
 import requests
-from stellar_sdk import Server, TransactionBuilder, Network, Asset, Keypair
+from stellar_sdk import Server, TransactionBuilder, Network, Asset, Keypair, Address
 from app.config import HORIZON_URL
 from app.config import ISSUER_PUBLIC_KEY, VAULT_SECRET_KEY
 from app.config import (
@@ -8,10 +7,11 @@ from app.config import (
     ISSUER_PUBLIC_KEY,
     VAULT_PUBLIC_KEY,
 )
-from stellar_sdk import SorobanServer
-
+from stellar_sdk import Address
+from decimal import Decimal, ROUND_DOWN
 from app.config import SOROBAN_CONTRACT_ID, SOROBAN_RPC_URL
-from stellar_sdk import Contract
+from stellar_sdk import contract
+from stellar_sdk import Server as SorobanServer
 
 server = Server(HORIZON_URL)
 
@@ -29,7 +29,7 @@ def fund_testnet_account(public_key: str):
     )
     return response.json()
 
-def send_xlm(source_secret: str, destination: str, amount: float):
+def send_xlm(source_secret: str, destination: str, amount: Decimal):
     source_keypair = Keypair.from_secret(source_secret)
     source_account = server.load_account(source_keypair.public_key)
 
@@ -41,7 +41,7 @@ def send_xlm(source_secret: str, destination: str, amount: float):
         )
         .append_payment_op(
             destination=destination,
-            amount=str(amount),
+            amount=str(amount.quantize(Decimal("0.0000001"), rounding=ROUND_DOWN)),
             asset=Asset.native()
         )
         .set_timeout(30)
@@ -81,7 +81,7 @@ def create_vault_trustline():
         "hash": response["hash"]
     }
     
-def mint_usdc_to_vault(amount: float):
+def mint_usdc_to_vault(amount: Decimal):
     issuer_keypair = Keypair.from_secret(ISSUER_SECRET_KEY)
     server = Server("https://horizon-testnet.stellar.org")
 
@@ -115,9 +115,9 @@ def mint_usdc_to_vault(amount: float):
 def atomic_payment_with_roundoff(
     source_secret: str,
     merchant_destination: str,
-    merchant_amount: float,
+    merchant_amount: Decimal,
     vault_destination: str,
-    roundoff_amount: float,
+    roundoff_amount: Decimal,
 ):
     source_keypair = Keypair.from_secret(source_secret)
     source_account = server.load_account(source_keypair.public_key)
@@ -131,7 +131,7 @@ def atomic_payment_with_roundoff(
     # Payment to merchant
     transaction.append_payment_op(
         destination=merchant_destination,
-        amount=str(merchant_amount),
+        amount=str(merchant_amount.quantize(Decimal("0.0000001"), rounding=ROUND_DOWN)),
         asset=Asset.native()
     )
 
@@ -139,7 +139,7 @@ def atomic_payment_with_roundoff(
     if roundoff_amount > 0:
         transaction.append_payment_op(
             destination=vault_destination,
-            amount=str(roundoff_amount),
+            amount=str(roundoff_amount.quantize(Decimal("0.0000001"), rounding=ROUND_DOWN)),
             asset=Asset.native()
         )
 
@@ -147,7 +147,13 @@ def atomic_payment_with_roundoff(
 
     transaction.sign(source_keypair)
 
-    response = server.submit_transaction(transaction)
+    try:
+        response = server.submit_transaction(transaction)
+    except Exception as e:
+        return {
+            "successful": False,
+            "error": str(e)
+        }
 
     return {
         "successful": response["successful"],
@@ -160,7 +166,7 @@ def soroban_deposit(user_secret: str, amount: int):
     keypair = Keypair.from_secret(user_secret)
     source_account = soroban_server.get_account(keypair.public_key)
 
-    contract = Contract(SOROBAN_CONTRACT_ID)
+    contract = contract(SOROBAN_CONTRACT_ID)
 
     transaction = (
         soroban_server.prepare_transaction(
@@ -172,7 +178,7 @@ def soroban_deposit(user_secret: str, amount: int):
             .append_operation(
                 contract.call(
                     "deposit",
-                    keypair.public_key,
+                    Address.from_account_id(keypair.public_key),
                     amount
                 )
             )
@@ -196,7 +202,7 @@ def soroban_withdraw(user_secret: str, amount: int):
     keypair = Keypair.from_secret(user_secret)
     source_account = soroban_server.get_account(keypair.public_key)
 
-    contract = Contract(SOROBAN_CONTRACT_ID)
+    contract = contract(SOROBAN_CONTRACT_ID)
 
     transaction = (
         soroban_server.prepare_transaction(
@@ -228,7 +234,7 @@ def soroban_withdraw(user_secret: str, amount: int):
 
 def soroban_get_balance(user_public_key: str):
     soroban_server = SorobanServer(SOROBAN_RPC_URL)
-    contract = Contract(SOROBAN_CONTRACT_ID)
+    contract = contract(SOROBAN_CONTRACT_ID)
 
     source_account = soroban_server.get_account(user_public_key)
 
@@ -243,3 +249,78 @@ def soroban_get_balance(user_public_key: str):
     simulation = soroban_server.simulate_transaction(tx)
 
     return simulation.result
+
+def soroban_get_total_usdc_principal():
+    from stellar_sdk import SorobanServer, Contract, Network
+    from stellar_sdk import TransactionBuilder
+
+    soroban_server = SorobanServer(SOROBAN_RPC_URL)
+    contract = Contract(SOROBAN_CONTRACT_ID)
+
+    source_account = soroban_server.get_account(VAULT_PUBLIC_KEY)
+
+    tx = TransactionBuilder(
+        source_account=source_account,
+        network_passphrase=Network.TESTNET_NETWORK_PASSPHRASE,
+        base_fee=100,
+    ).append_operation(
+        contract.call("total_usdc_principal")
+    ).set_timeout(30).build()
+
+    simulation = soroban_server.simulate_transaction(tx)
+
+    return simulation.result.retval
+
+def soroban_get_user_summary(user_public_key: str):
+    from stellar_sdk import SorobanServer, Contract, Network
+    from stellar_sdk import TransactionBuilder
+
+    soroban_server = SorobanServer(SOROBAN_RPC_URL)
+    contract = Contract(SOROBAN_CONTRACT_ID)
+
+    source_account = soroban_server.get_account(user_public_key)
+
+    tx = TransactionBuilder(
+        source_account=source_account,
+        network_passphrase=Network.TESTNET_NETWORK_PASSPHRASE,
+        base_fee=100,
+    ).append_operation(
+        contract.call("get_user_summary", user_public_key)
+    ).set_timeout(30).build()
+
+    simulation = soroban_server.simulate_transaction(tx)
+
+    return simulation.result.retval
+
+def soroban_add_yield_admin(user_public_key: str, amount: int):
+    from stellar_sdk import SorobanServer, Contract, Network, Keypair, Address
+    from stellar_sdk import TransactionBuilder
+
+    soroban_server = SorobanServer(SOROBAN_RPC_URL)
+    contract = Contract(SOROBAN_CONTRACT_ID)
+
+    admin_keypair = Keypair.from_secret(VAULT_SECRET_KEY)
+    source_account = soroban_server.get_account(admin_keypair.public_key)
+
+    transaction = soroban_server.prepare_transaction(
+        TransactionBuilder(
+            source_account=source_account,
+            network_passphrase=Network.TESTNET_NETWORK_PASSPHRASE,
+            base_fee=100,
+        )
+        .append_operation(
+            contract.call(
+                "add_yield",
+                Address.from_account_id(user_public_key),
+                amount
+            )
+        )
+        .set_timeout(30)
+        .build()
+    )
+
+    transaction.sign(admin_keypair)
+
+    response = soroban_server.send_transaction(transaction)
+
+    return response.status
