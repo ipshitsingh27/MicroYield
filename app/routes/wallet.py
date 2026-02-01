@@ -13,7 +13,6 @@ from app.services.stellar_service import send_xlm
 from app.utils.rounding import calculate_roundoff
 from app.services.stellar_service import mint_usdc_to_vault
 from app.config import VAULT_PUBLIC_KEY
-from app.models.vault import VaultDeposit
 from app.services.stellar_service import atomic_payment_with_roundoff
 
 
@@ -140,12 +139,6 @@ def pay(
 
     # Record savings in DB only if roundoff happened
     if roundoff_amount > 0:
-        deposit = VaultDeposit(
-            user_id=user.id,
-            amount=roundoff_amount
-        )
-        db.add(deposit)
-
         # Mint USDC if invest selected
         if roundoff_option == "invest":
             mint_usdc_to_vault(roundoff_amount)

@@ -23,6 +23,21 @@ body {
   position: relative;
 }
 
+.app-wrapper { padding:20px 20px 80px; }
+.app-center { height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+.brand-main { color:#00e5ff; }
+.brand-accent { color:#00bcd4; }
+.primary-btn { background:#00e5ff; color:#000; border:none; padding:12px 20px; border-radius:30px; font-weight:700; margin-top:15px; }
+.secondary-btn { background:transparent; border:1px solid #00e5ff; color:#00e5ff; padding:12px 20px; border-radius:30px; }
+.auth-card { max-width:350px; margin:120px auto; display:flex; flex-direction:column; gap:15px; }
+input { padding:12px; border-radius:10px; border:none; }
+.card { background:#0f1c24; padding:20px; border-radius:20px; box-shadow:0 0 15px rgba(0,229,255,.3); }
+.bottom-nav { position:fixed; bottom:0; width:100%; display:flex; justify-content:space-around; background:#08151d; padding:12px 0; }
+.bottom-nav button { background:none; border:none; color:#00e5ff; font-size:20px; }
+.content { display:flex; flex-direction:column; gap:20px; }
+.toggle { display:flex; gap:10px; align-items:center; }
+
+
 /* ==================== ANIMATED BACKGROUND ==================== */
 .crypto-background {
   position: fixed;
@@ -596,4 +611,34 @@ header p {
   .crypto-coin {
     font-size: 2rem;
   }
+}
+
+/* ==================== BOTTOM NAV ==================== */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(15, 28, 36, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0, 229, 255, 0.2);
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  z-index: 200;
+}
+
+.bottom-nav button {
+  background: none;
+  border: none;
+  color: var(--primary-cyan);
+  font-size: 22px;
+  font-family: "Orbitron", monospace;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.bottom-nav button:hover {
+  transform: scale(1.2);
+  color: white;
 }
